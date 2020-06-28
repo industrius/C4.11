@@ -2,16 +2,16 @@
   <div class="container">
     <div class="col-sm-10">
       <h1>Задачи</h1>
-        <confirmation
-          :message="confirmationMessage"
-        >
-        </confirmation>
-        <button type="button"
-          id="task-add"
-          class="btn btn-success btn-sm align-left d-block"
-          v-b-modal.todo-modal>
-          Добавить задачу
-        </button>
+      <confirmation
+        :message="confirmationMessage"
+      >
+      </confirmation>
+      <button type="button"
+        id="task-add"
+        class="btn btn-success btn-sm align-left d-block"
+        v-b-modal.todo-modal>
+        Добавить задачу
+      </button>
       <table class="table table-dark table-stripped table-hover">
         <thead class="thead-light">
           <tr>
