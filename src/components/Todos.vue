@@ -23,7 +23,7 @@
                             type="text"
                             v-model="task.description"
                             required
-                            placeholder="Имя задачи">
+                            placeholder="Описание задачи">
                         </b-form-input>
                     </b-form-group>
                     <b-form-group id="form-complete-group">
@@ -47,8 +47,8 @@
                 </thead>
                 <tbody>
                     <tr v-for="(task, index) in tasks" v-bind:key="index">
-                        <td class="task-index">{{ index + 1 }}</td>
-                        <td>{{ task.description }}</td>
+                        <td>{{ index + 1 }}</td>
+                        <td class="task-description">{{ task.description }}</td>
                         <td>
                             <span v-if="task.is_complete">Выполнено</span>
                             <span v-else>Не выполнено</span>
@@ -58,8 +58,8 @@
                                 <button type="button"
                                     class="btn btn-secondary btn-sm"
                                     v-b-modal.task-modal
-                                    @click="updateTask(task)">
-                                    Обновить
+                                    @click="updateTask(task, index)">
+                                    Изменить
                                 </button>
                                 &nbsp;
                                 <button type="button"
@@ -77,11 +77,22 @@
     </div>
 </template>
 
+<style>
+button#task-add {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+.task-description {
+    text-align: left;
+}
+</style>
+
 <script>
 export default {
     data() {
         return {
             task: {
+                index: 0,
                 description: "",
                 is_complete: []
             },
@@ -104,12 +115,17 @@ export default {
                 description: this.task.description,
                 is_complete: this.task.is_complete.length > 0
             }
-            if (this.tasks) {
-                this.tasks.push(reqestData)
+            if (this.modal_props.title == "Изменить задачу") {
+                this.tasks[this.task.index] = reqestData
             }else{
-                this.tasks = [reqestData]
+                if (this.tasks) {
+                    this.tasks.push(reqestData)
+                }else{
+                    this.tasks = [reqestData]
+                }
             }
             localStorage.setItem("tasks", JSON.stringify(this.tasks))
+            this.getTasks()
         },
         modalReset() {
             event.preventDefault()
@@ -117,9 +133,10 @@ export default {
             this.task.description = ""
             this.task.is_complete = []
         },
-        updateTask(task) {
-            this.modal_props.title = "Обновить задачу"
+        updateTask(task, index) {
+            this.modal_props.title = "Изменить задачу"
             this.modal_props.submit_btn_text = "Обновить"
+            this.task.index = index
             this.task.description = task.description
             if (task.is_complete) {
                 this.task.is_complete = [true]
