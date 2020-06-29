@@ -2,14 +2,24 @@
     <div class="container">
         <div class="col-sm-10">
             <h1>Задачи</h1>
-
-            <button type="button"
-                id="task-add"
-                class="btn btn-success btn-sm align-left d-block"
-                v-b-modal.task-modal
-                @click="modalReset()">
-                Добавить задачу
-            </button>
+            <div class="row">
+                <div class="col col-sm-2">
+                    <button type="button"
+                        id="task-add"
+                        class="btn btn-success btn-sm align-left d-block"
+                        v-b-modal.task-modal
+                        @click="modalReset()">
+                        Добавить задачу
+                    </button>
+                </div>
+                <div class="col col-sm-10">
+                    <confirmation
+                        v-if="confirmationShow" 
+                        v-bind:message="confirmationMessage"
+                        v-bind:confirmationReset="confirmationReset">
+                    </confirmation>
+                </div>
+            </div>
 
             <b-modal ref="addTodoModal"
                 id="task-modal"
@@ -58,7 +68,7 @@
                                 <button type="button"
                                     class="btn btn-secondary btn-sm"
                                     v-b-modal.task-modal
-                                    @click="updateTask(task, index)">
+                                    @click="modalUpdate(task, index)">
                                     Изменить
                                 </button>
                                 &nbsp;
@@ -79,7 +89,7 @@
 
 <style>
 button#task-add {
-    margin-top: 20px;
+    line-height: 1.4;
     margin-bottom: 20px;
 }
 .task-description {
@@ -88,7 +98,11 @@ button#task-add {
 </style>
 
 <script>
+import confirmation from "./Confirm.vue"
 export default {
+    components: {
+        confirmation
+    },
     data() {
         return {
             task: {
@@ -100,13 +114,18 @@ export default {
                 title: "Добавить задачу",
                 submit_btn_text: "Добавить"
             }, 
-            tasks: []
+            tasks: [],
+            confirmationMessage: "",
+            confirmationShow: false
         }
     },
     methods: {
         getTasks() {
             this.tasks = JSON.parse(localStorage.getItem("tasks"))
-            console.log(this.tasks)
+            if (this.tasks) {
+                this.confirmationMessage = "Задачи обновлены"
+            }
+            this.confirmationShow = true
         },
         modalSubmit() {
             event.preventDefault()
@@ -117,15 +136,17 @@ export default {
             }
             if (this.modal_props.title == "Изменить задачу") {
                 this.tasks[this.task.index] = reqestData
+                this.confirmationMessage = "Задача обновлена"
             }else{
                 if (this.tasks) {
                     this.tasks.push(reqestData)
                 }else{
                     this.tasks = [reqestData]
                 }
+                this.confirmationMessage = "Задача добавлена"
             }
             localStorage.setItem("tasks", JSON.stringify(this.tasks))
-            this.getTasks()
+            this.confirmationShow = true
         },
         modalReset() {
             event.preventDefault()
@@ -133,7 +154,7 @@ export default {
             this.task.description = ""
             this.task.is_complete = []
         },
-        updateTask(task, index) {
+        modalUpdate(task, index) {
             this.modal_props.title = "Изменить задачу"
             this.modal_props.submit_btn_text = "Обновить"
             this.task.index = index
@@ -141,13 +162,17 @@ export default {
             if (task.is_complete) {
                 this.task.is_complete = [true]
             }
-            console.log(task.description)
         },
         deleteTask(index) {
             this.tasks = this.tasks.filter((item, i) => {
                 return i != index
             })
             localStorage.setItem("tasks", JSON.stringify(this.tasks))
+            this.confirmationMessage = "Задача удалена"
+            this.confirmationShow = true
+        },
+        confirmationReset() {
+            this.confirmationShow = false
         }
     },
     created() {
