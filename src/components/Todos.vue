@@ -1,7 +1,8 @@
 <template>
     <div class="container">
-        <div class="col-sm-10">
+        <div class="col-sm-12">
             <h1>Задачи</h1>
+           
             <div class="row">
                 <div class="col col-sm-2">
                     <button type="button"
@@ -12,16 +13,20 @@
                         Добавить задачу
                     </button>
                 </div>
-                <div class="col col-sm-10">
+                <div class="col col-sm-7">
                     <confirmation
                         v-if="confirmationShow" 
                         v-bind:message="confirmationMessage"
                         v-bind:confirmationReset="confirmationReset">
                     </confirmation>
                 </div>
+                <counter class="col col-sm-3"
+                    v-bind:performedTasks="performedTasks"
+                    v-bind:countTasks="countTasks"
+                ></counter>
             </div>
 
-            <b-modal ref="addTodoModal"
+            <b-modal ref="TaskModal"
                 id="task-modal"
                 v-bind:title="modal_props.title"
                 hide-footer>
@@ -99,9 +104,11 @@ button#task-add {
 
 <script>
 import confirmation from "./Confirm.vue"
+import counter from "./Counter.vue"
 export default {
     components: {
-        confirmation
+        confirmation,
+        counter
     },
     data() {
         return {
@@ -116,20 +123,29 @@ export default {
             }, 
             tasks: [],
             confirmationMessage: "",
-            confirmationShow: false
+            confirmationShow: false,
+            performedTasks: 0,
+            countTasks: 0
         }
     },
     methods: {
         getTasks() {
             this.tasks = JSON.parse(localStorage.getItem("tasks"))
-            if (this.tasks) {
+            if (this.tasks.length > 0) {
                 this.confirmationMessage = "Задачи обновлены"
+                this.confirmationShow = true
             }
-            this.confirmationShow = true
+            this.getStat()
+        },
+        getStat() {
+            this.performedTasks = 0
+            this.countTasks = this.tasks.length
+            this.tasks.forEach(item => {
+                if (item.is_complete) {this.performedTasks ++}
+            })
         },
         modalSubmit() {
             event.preventDefault()
-            this.$refs.addTodoModal.hide()
             const reqestData = {
                 description: this.task.description,
                 is_complete: this.task.is_complete.length > 0
@@ -147,12 +163,16 @@ export default {
             }
             localStorage.setItem("tasks", JSON.stringify(this.tasks))
             this.confirmationShow = true
+            this.modalReset()
+            this.getStat()
         },
         modalReset() {
             event.preventDefault()
-            this.$refs.addTodoModal.hide()
+            this.$refs.TaskModal.hide()
             this.task.description = ""
             this.task.is_complete = []
+            this.modal_props.title = "Добавить задачу"
+            this.modal_props.submit_btn_text = "Добавить"
         },
         modalUpdate(task, index) {
             this.modal_props.title = "Изменить задачу"
@@ -161,6 +181,8 @@ export default {
             this.task.description = task.description
             if (task.is_complete) {
                 this.task.is_complete = [true]
+            }else{
+                this.task.is_complete = []
             }
         },
         deleteTask(index) {
@@ -170,6 +192,7 @@ export default {
             localStorage.setItem("tasks", JSON.stringify(this.tasks))
             this.confirmationMessage = "Задача удалена"
             this.confirmationShow = true
+            this.getStat()
         },
         confirmationReset() {
             this.confirmationShow = false
